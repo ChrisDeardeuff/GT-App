@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../services/galactic_time.service.dart'; // Make sure this path is correct
+import '../services/galactic_time.service.dart';
 
 class TimeView extends StatefulWidget {
   const TimeView({super.key});
@@ -10,15 +11,21 @@ class TimeView extends StatefulWidget {
 
 class _TimeViewState extends State<TimeView> {
   late String formattedGalacticTime;
+  late String formattedGalacticDate;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _updateGalacticTime();
+    _updateGalacticTime(); // Initial update
+    // Start a periodic timer that fires every 330 milliseconds
+    _timer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      _updateGalacticTime();
+    });
   }
 
   void _updateGalacticTime() {
-    String gtFullString = GalacticTimeService.getGT(); // Example: "4803328547.850486"
+    String gtFullString = GalacticTimeService.getGT();
 
     // Find the decimal point to isolate the integer part
     int decimalPointIndex = gtFullString.indexOf('.');
@@ -26,7 +33,7 @@ class _TimeViewState extends State<TimeView> {
         ? gtFullString.substring(0, decimalPointIndex)
         : gtFullString;
 
-    // --- Parsing from right to left as per your description ---
+    // --- Parsing from right to left
 
     // Seconds (last two digits of the integer part)
     String gtSecond = "";
@@ -79,23 +86,19 @@ class _TimeViewState extends State<TimeView> {
     }
 
     // Year (the rest)
-    String gtYear = integerPart.isNotEmpty ? integerPart : "0"; // Default to "0" if nothing is left
+    String gtYear = integerPart.isNotEmpty ? integerPart : "0";
 
-    // Format the string
-    // Adding zero-padding for single-digit months, days, hours, minutes, seconds for consistency if desired
-    // Example: If month is "0", day is "33", hour is "2", minute is "85", second is "47"
-    // it will be ".0.33 2.85.47"
-    // If you prefer "0.33 2.85.47", adjust accordingly (e.g. don't pad gtMonth if it's already "0")
+    // Use setState to trigger a UI rebuild with the new time
+    setState(() {
+      formattedGalacticTime = "$gtHour.$gtMinute.$gtSecond";
+      formattedGalacticDate = "$gtYear.$gtMonth.$gtDay";
+    });
+  }
 
-    // The current parsing logic for single digits (hour, month) already extracts them as single digits.
-    // If you need them to be two digits (e.g., "02" for hour), you would padLeft them:
-    // gtHour = gtHour.padLeft(2, '0');
-    // gtMonth = gtMonth.padLeft(2, '0'); // For month like ".00" - adjust if this isn't desired
-
-    formattedGalacticTime = "$gtYear.$gtMonth.$gtDay $gtHour.$gtMinute.$gtSecond";
-
-    // If you want to update the time periodically, you'd use a Timer here
-    // For now, it just sets it once.
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel the timer when the widget is disposed
+    super.dispose();
   }
 
   @override
@@ -105,12 +108,15 @@ class _TimeViewState extends State<TimeView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            'Galactic Standard Time:', // A label
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          SizedBox(height: 8), // Some spacing
-          Text(
             formattedGalacticTime,
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+              fontSize: 60,
+              fontFamily: 'monospace', // Often good for displaying time
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            formattedGalacticDate,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontFamily: 'monospace', // Often good for displaying time
             ),

@@ -26,41 +26,87 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  var gt = GalacticTimeService.getGT();
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  var _selectedIndex = 0;
 
-  void _incrementCounter() {
+  // Define an AnimationController and Tween for the rotation
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300), // Adjust duration as needed
+      vsync: this,
+    );
+    _animation = Tween<double>(begin: 0.0, end: 0.5)
+        .animate(_controller); // 1.0 means a full 360-degree rotation
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex == 2 && index != 2) {
+      // If timers was selected and now it's not, reset rotation
+      _controller.reverse();
+    }
     setState(() {
-      gt = GalacticTimeService.getGT();
+      _selectedIndex = index;
     });
+    if (index == 2) {
+      // "Timers" is the 3rd item (index 2)
+      _controller.forward(from: 0.0); // Start the rotation animation
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget timersIcon = const Icon(Icons.hourglass_bottom);
+    if (_selectedIndex == 2) {
+      timersIcon = RotationTransition(
+        turns: _animation,
+        child: const Icon(Icons.hourglass_bottom),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+      body: const TimeView(), // Replace with your actual content for each tab
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.timelapse), label: 'Clock'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.alarm), label: 'Alarm'),
+          BottomNavigationBarItem(
+            icon: timersIcon,
+            label: 'Timers',
+          ),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month), label: 'Calendar'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Theme.of(context).colorScheme.onSurface,
+        unselectedItemColor: Theme.of(context).colorScheme.onPrimary,
+        onTap: _onItemTapped, // Updated onTap handler
       ),
-      body: const TimeView(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
