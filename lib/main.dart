@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:galactic_time/services/galactic_time.service.dart';
+import 'package:galactic_time/views/convert.view.dart';
 import 'package:galactic_time/views/time.view.dart';
 
-void main() {
+import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await findSystemLocale();
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -88,7 +92,15 @@ class _MyHomePageState extends State<MyHomePage>
     }
 
     return Scaffold(
-      body: const TimeView(), // Replace with your actual content for each tab
+      body: switch (_selectedIndex) {
+        0 => const TimeView(),
+        1 => const Center(child: Text('Alarm')),
+        2 => const Center(child: Text('Timers')),
+        3 => const Center(child: Text('Calendar')),
+        4 => const ConvertView(),
+        // TODO: Handle this case.
+        int() => throw UnimplementedError(),
+      },
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
@@ -101,6 +113,8 @@ class _MyHomePageState extends State<MyHomePage>
           ),
           const BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month), label: 'Calendar'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.compare_arrows), label: 'Convert'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).colorScheme.onSurface,

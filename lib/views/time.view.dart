@@ -12,6 +12,13 @@ class TimeView extends StatefulWidget {
 class _TimeViewState extends State<TimeView> {
   late String formattedGalacticTime;
   late String formattedGalacticDate;
+  late String gtHour;
+  late String gtMinute;
+  late String gtSecond;
+  late String gtDay;
+  late String gtMonth;
+  late String gtYear;
+
   Timer? _timer;
 
   @override
@@ -36,17 +43,18 @@ class _TimeViewState extends State<TimeView> {
     // --- Parsing from right to left
 
     // Seconds (last two digits of the integer part)
-    String gtSecond = "";
+    gtSecond = "";
     if (integerPart.length >= 2) {
       gtSecond = integerPart.substring(integerPart.length - 2);
       integerPart = integerPart.substring(0, integerPart.length - 2);
     } else {
-      gtSecond = integerPart.padLeft(2, '0'); // Handle cases like "5.xxx" -> "05" seconds
+      gtSecond = integerPart.padLeft(
+          2, '0'); // Handle cases like "5.xxx" -> "05" seconds
       integerPart = "";
     }
 
     // Minutes (next two digits)
-    String gtMinute = "";
+    gtMinute = "";
     if (integerPart.length >= 2) {
       gtMinute = integerPart.substring(integerPart.length - 2);
       integerPart = integerPart.substring(0, integerPart.length - 2);
@@ -56,7 +64,7 @@ class _TimeViewState extends State<TimeView> {
     }
 
     // Hour (next single digit)
-    String gtHour = "";
+    gtHour = "";
     if (integerPart.length >= 1) {
       gtHour = integerPart.substring(integerPart.length - 1);
       integerPart = integerPart.substring(0, integerPart.length - 1);
@@ -66,7 +74,7 @@ class _TimeViewState extends State<TimeView> {
     }
 
     // Days (next two digits)
-    String gtDay = "";
+    gtDay = "";
     if (integerPart.length >= 2) {
       gtDay = integerPart.substring(integerPart.length - 2);
       integerPart = integerPart.substring(0, integerPart.length - 2);
@@ -76,7 +84,7 @@ class _TimeViewState extends State<TimeView> {
     }
 
     // Month (next single digit)
-    String gtMonth = "";
+    gtMonth = "";
     if (integerPart.length >= 1) {
       gtMonth = integerPart.substring(integerPart.length - 1);
       integerPart = integerPart.substring(0, integerPart.length - 1);
@@ -86,11 +94,11 @@ class _TimeViewState extends State<TimeView> {
     }
 
     // Year (the rest)
-    String gtYear = integerPart.isNotEmpty ? integerPart : "0";
+    gtYear = integerPart.isNotEmpty ? integerPart : "0";
 
     // Use setState to trigger a UI rebuild with the new time
     setState(() {
-      formattedGalacticTime = "$gtHour.$gtMinute.$gtSecond";
+      //formattedGalacticTime = "$gtHour.$gtMinute.$gtSecond";
       formattedGalacticDate = "$gtYear.$gtMonth.$gtDay";
     });
   }
@@ -104,22 +112,40 @@ class _TimeViewState extends State<TimeView> {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column( // Using Column for better layout of multiple Text widgets
+      child: Column(
+        // Using Column for better layout of multiple Text widgets
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(
-            formattedGalacticTime,
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              fontSize: 60,
-              fontFamily: 'monospace', // Often good for displaying time
-            ),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "$gtHour.$gtMinute",
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 100,
+                      fontFamily: 'monospace', // Often good for displaying time
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text(
+                  gtSecond,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        fontSize: 30,
+                        fontFamily:
+                            'monospace', // Often good for displaying time
+                      ),
+                ),
+              ),
+            ],
           ),
           Text(
             formattedGalacticDate,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontFamily: 'monospace', // Often good for displaying time
-            ),
+                  fontFamily: 'monospace', // Often good for displaying time
+                ),
             textAlign: TextAlign.center,
           ),
         ],
