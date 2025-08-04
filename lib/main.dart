@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:galactic_time/services/galactic_time.service.dart';
 import 'package:galactic_time/views/convert.view.dart';
@@ -49,25 +51,42 @@ class _MyHomePageState extends State<MyHomePage>
   // Define an AnimationController and Tween for the rotation
   late AnimationController _controller;
   late Animation<double> _animation;
+  Map<String,int> gt = GalacticTimeService.parseGalacticTime(GalacticTimeService.getGT());
+  Timer? _galacticTimeUpdateTimer;
 
   @override
   void initState() {
     super.initState();
+    _updateGalacticTime();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300), // Adjust duration as needed
       vsync: this,
     );
     _animation = Tween<double>(begin: 0.0, end: 0.5)
         .animate(_controller); // 1.0 means a full 360-degree rotation
+    // Start the periodic timer to update Galactic Time every 30 seconds
+    _galacticTimeUpdateTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _updateGalacticTime();
+    });
+  }
+
+  void _updateGalacticTime() {
+    if (mounted) { // Check if the widget is still in the tree
+      setState(() {
+        gt = GalacticTimeService.parseGalacticTime(GalacticTimeService.getGT());
+      });
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _galacticTimeUpdateTimer?.cancel();
     super.dispose();
   }
 
   void _onItemTapped(int index) {
+
     if (_selectedIndex == 2 && index != 2) {
       // If timers was selected and now it's not, reset rotation
       _controller.reverse();
@@ -94,17 +113,17 @@ class _MyHomePageState extends State<MyHomePage>
     return Scaffold(
       body: switch (_selectedIndex) {
         0 => const TimeView(),
-        1 => const Center(child: Text('Alarm')),
-        2 => const Center(child: Text('Timers')),
-        3 => const Center(child: Text('Calendar')),
+        1 => const Center(child: Text('Alarms coming soon!')),
+        2 => const Center(child: Text('Timers coming soon!')),
+        3 => const Center(child: Text('Calendar coming soon!')),
         4 => const ConvertView(),
         // TODO: Handle this case.
         int() => throw UnimplementedError(),
       },
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.timelapse), label: 'Clock'),
+          _selectedIndex == 0 ? const BottomNavigationBarItem(
+              icon: Icon(Icons.timelapse), label: 'Clock') : BottomNavigationBarItem(icon: Text("${gt['hours']}.${gt['minutes']}"), label: 'Clock'),
           const BottomNavigationBarItem(
               icon: Icon(Icons.alarm), label: 'Alarm'),
           BottomNavigationBarItem(
